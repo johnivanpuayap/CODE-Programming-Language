@@ -1,13 +1,18 @@
-#include <iostream>
 #include <string>
-#include <vector>
+#include <iostream>
 
 enum class TokenType {
+    BEGIN_CODE,
+    END_CODE,
     IDENTIFIER,
     INTEGER,
     PLUS,
     MINUS,
-    SEMICOLON,
+    MULTIPLY,
+    DIVIDE,
+    EQUAL,
+    ASSIGN,
+    PARENTHESES,
     END_OF_FILE
 };
 
@@ -30,6 +35,18 @@ public:
             return {TokenType::END_OF_FILE, ""};
         }
 
+        if (source_.substr(current_pos_, 10) == "BEGIN CODE") {
+            current_pos_ += 10;
+            return {TokenType::BEGIN_CODE, "BEGIN CODE"};
+        }
+            
+        
+        if(source_.substr(current_pos_, 8) == "END CODE") {
+            current_pos_ += 8;
+            return {TokenType::END_CODE, "END CODE"};
+        }
+        
+
         char current_char = source_[current_pos_];
         if (isdigit(current_char)) {
             return lexNumber();
@@ -43,9 +60,21 @@ public:
                 case '-':
                     current_pos_++;
                     return {TokenType::MINUS, "-"};
-                case ';':
+                case '*':
                     current_pos_++;
-                    return {TokenType::SEMICOLON, ";"};
+                    return {TokenType::MULTIPLY, "*"};
+                case '/':
+                    current_pos_++;
+                    return {TokenType::DIVIDE, "/"};
+                case '=':
+                    current_pos_++;
+                    if(source_[current_pos_] == '=') {
+                        current_pos_++;
+                        return {TokenType::EQUAL, "=="};
+                    } else {
+                        return {TokenType::ASSIGN, "="};
+                    }
+
                 default:
                     // Handle unrecognized characters
                     std::cerr << "Error: Unexpected character '" << current_char << "'\n";
@@ -76,15 +105,3 @@ private:
     std::string source_;
     size_t current_pos_;
 };
-
-int main() {
-    std::string source = "x = 10 + 20; y = x - 5;";
-    Lexer lexer(source);
-    Token token;
-    do {
-        token = lexer.getNextToken();
-        std::cout << "Token: Type=" << static_cast<int>(token.type) << ", Lexeme='" << token.lexeme << "'\n";
-    } while (token.type != TokenType::END_OF_FILE);
-
-    return 0;
-}
